@@ -15,6 +15,8 @@ V1.01
 	-add BaseView property
 	-better handling if you swipe fast
 	-touch area is now as wide as the circle	
+V1.02
+	-BugFixes
 #End If
 #DesignerProperty: Key: BarWidth, DisplayName: Bar Width Percent, FieldType: Int, DefaultValue: 20, MinRange: 0
 #DesignerProperty: Key: AnimationDuration, DisplayName: Animation Duration, FieldType: Int, DefaultValue: 250, MinRange: 0
@@ -104,7 +106,7 @@ Private Sub Base_Resize (Width As Double, Height As Double)
 	xiv_hue.SetLayoutAnimated(0,Width - tmp_huewidth - 10dip/2,(Width - tmp_huewidth - g_padding)/2,tmp_huewidth,Height - (Width - tmp_huewidth - g_padding))
 	xpnl_background.SetLayoutAnimated(0,xiv_hue.left - 10dip/2,xiv_hue.top,xiv_hue.Width + 10dip,xiv_hue.Height)
 	
-	xpnl_colorcircle.SetLayoutAnimated(0,xiv_hue.Left - 5dip,xiv_hue.top - (xiv_hue.Width + 10dip)/2,xiv_hue.Width + 10dip,xiv_hue.Width + 10dip)
+	xpnl_colorcircle.SetLayoutAnimated(0,xiv_hue.Left - 5dip,xiv_hue.top - (xiv_hue.Width + 10dip)/2, xiv_hue.Width + 10dip,xiv_hue.Width + 10dip)
 	
 	xpnl_colorcircle.SetColorAndBorder(xui.Color_Black,g_CircleBorderWidth,g_CircleBorderColor,xpnl_colorcircle.Width/2)
 	xpnl_background.Color = xui.Color_Transparent
@@ -120,17 +122,18 @@ Private Sub xpnl_background_Touch2 (o As Object, ACTION As Int, x As Float, y As
 Private Sub xpnl_background_Touch(Action As Int, X As Float, Y As Float) As Boolean
 #END IF
 
-	If ACTION = mBase.TOUCH_ACTION_DOWN Then
+	If Action = mBase.TOUCH_ACTION_DOWN Then
+		Dim WidthHeight As Float = mBase.Width - xiv_hue.Width - g_padding
 		
-		xpnl_colorcircle.SetLayoutAnimated(g_AnimationDuration,0,xiv_hue.Top + y - (mBase.Width - xiv_hue.Width - g_padding)/2,mBase.Width - xiv_hue.Width - g_padding,mBase.Width - xiv_hue.Width - g_padding)
-		xpnl_colorcircle.SetColorAndBorder(xpnl_colorcircle.Color,g_CircleBorderWidth,g_CircleBorderColor,xpnl_colorcircle.Height/2)
-	Else If  ACTION = mBase.TOUCH_ACTION_MOVE Then
+		xpnl_colorcircle.SetLayoutAnimated(g_AnimationDuration,0,xiv_hue.Top + y - (mBase.Width - xiv_hue.Width - g_padding)/2,WidthHeight,WidthHeight)
+		xpnl_colorcircle.SetColorAndBorder(xpnl_colorcircle.Color,g_CircleBorderWidth,g_CircleBorderColor,WidthHeight/2)
+	Else If  Action = mBase.TOUCH_ACTION_MOVE Then
 		If y < xiv_hue.Height Then
 			xpnl_colorcircle.Top =  Max(0,xiv_hue.Top + y - (mBase.Width - xiv_hue.Width - g_padding)/2)
 			Else
 			xpnl_colorcircle.Top =  Min(xiv_hue.Height ,xiv_hue.Top + y - (mBase.Width - xiv_hue.Width - g_padding)/2)
 		End If
-	Else If  ACTION = mBase.TOUCH_ACTION_UP Then
+	Else If  Action = mBase.TOUCH_ACTION_UP Then
 		xpnl_colorcircle.SetColorAndBorder(xpnl_colorcircle.Color,g_CircleBorderWidth,g_CircleBorderColor,(xiv_hue.Width + 10dip)/2)
 		If y >= 0 And y <= xiv_hue.Height Then
 			xpnl_colorcircle.SetLayoutAnimated(g_AnimationDuration,xiv_hue.Left - 5dip,xiv_hue.Top + y - (xiv_hue.Width + 10dip)/2,xiv_hue.Width + 10dip,xiv_hue.Width + 10dip)
@@ -174,7 +177,7 @@ Private Sub GetColor(y As Float) As Int
 		crl = xui.Color_Black
 	End If
 	
-	CallSub2(mCallBack, mEventName & "_ColorChanged",crl)
+	ColorChanged(crl)
 	Return crl
 End Sub
 
@@ -195,6 +198,16 @@ End Sub
 
 Public Sub setColorPaletteBitmap(palette As B4XBitmap)
 	xiv_hue.SetBitmap(CreateRoundRectBitmap(palette,xiv_hue.Width/2))
+End Sub
+
+#End Region
+
+#Region Events
+
+Private Sub ColorChanged(Color As Int)
+	If xui.SubExists(mCallBack, mEventName & "_ColorChanged",1) Then
+		CallSub2(mCallBack, mEventName & "_ColorChanged",Color)
+	End If
 End Sub
 
 #End Region
